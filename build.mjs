@@ -392,6 +392,9 @@ console.log('已复制 PWA 文件 → ' + pwaFiles.join(', ') + '（sw 缓存版
 // （防止并行会话/旧缓冲把已移除的代码改回来）。
 // 维护：新增关键修复时在此登记一行 { name, file, needle }（needle 为产物中的特征串）。
 const FIX_SENTINELS = [
+  { name: '#1546a TA 发这条动态时主动贴一张的闸（该桌面 sticker 池非空＋朋友圈表情包类型闸开着＋掷中 fd-post-sticker；删＝作者点名的主动贴从贴纸层消失）', file: 'js/feed.js', needle: "if (g.stPool && g.stPool.length && feedTypeOn(cid, 'sticker') && Math.random() * 100 < cfg.postSticker) {" },
+  { name: '#1546b 主动贴的载荷接 #1219 令牌升级链（漏接＝整张 dataURL 顶进权威键 feed-posts，过大键线后被剥图＝「照片消失只剩贴纸」那一族回流）', file: 'js/feed.js', needle: 'if (taStk) feedStickerTokUpgrade(post.id, taStk);' },
+  { name: '#1546c 取生成器这一轮已算好的 sticker 池（零额外扫库，#931 卡顿族口径；改成再调一次 cardPool＝每次发动态多扫一遍全库）', file: 'js/feed.js', needle: 'stPool: uniqArr(pool.sticker)' },
   { name: '#1545a TA 回贴的承诺写进我贴那一格（掷中才落 owed=1，随 feed-posts 权威键落盘；删＝那一发又只活在 setTimeout 里，页面被回收就永远不回贴）', file: 'js/feed.js', needle: 'if (Math.random() * 100 < cfg.commentProb) rec.owed = 1;' },
   { name: '#1545b 回场认欠账判据（最后一格是我贴的 且 owed=1 才认；删或改成无条件补投＝把「没掷中」也当成欠，TA 开始凭空贴）', file: 'js/feed.js', needle: 'if (last.owed !== 1) return;' },
   { name: '#1545c 补投前先等该桌面字卡大键回落＋读不到动态有界重试（删＝冷读窗口 if (!p2) return 静默作废，重开也不补）', file: 'js/feed.js', needle: 'if ((tries || 0) < 2) { feedTaStickerReply(pid, cid, cfg, 1500, (tries || 0) + 1); return; }' },

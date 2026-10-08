@@ -1102,7 +1102,7 @@
     // #1198 与评论/回复同一口径：TA 发动态的文字卡中间走「拼接符号」池（自家开关默认关＝原样空格）
     const rcf = window.replyCfgFor ? window.replyCfgFor(cid) : null;
     const body = (window.pyJoinCards && rcf) ? window.pyJoinCards(textParts, rcf, rcf['fd-punct-en'] === 1) : textParts.join(' ');
-    return { content: body, imgs: imgs };
+    return { content: body, imgs: imgs, stPool: uniqArr(pool.sticker) };
   }
   // 动态正文 HTML：文字混排 + 独立图片区（九宫格）
   // v3.5.95：兼容旧数据 p.img 字段
@@ -3351,8 +3351,20 @@ if (comInput) comInput.addEventListener('keydown', (e) => { if (e.key === 'Enter
         const taAv = cs.get('avatar-partner') || '';
         const list = load();
         const post = { id: 'f_' + Date.now() + '_' + cid, role: 'ta', owner: cid, authorName: taName, authorAv: '', taName: taName, taAv: '', content: g.content, imgs: g.imgs, ts: Date.now(), likes: [], comments: [] };
+        // #1546：TA 发自己这条动态时也有概率【主动贴一张贴纸】（作者 2026-10-08 点名这条行为）。
+        //   掷同一条「使用表情包概率」fd-post-sticker、取同该桌面 sticker 池（g.stPool＝生成器这一轮
+        //   已经算好的那份，零额外扫库，#931 口径）、落位走同一把 feedRandStickerPos；
+        //   「朋友圈用表情包」类型闸（reply-fd-sticker-en）关掉时不贴；载荷走 #1219 那条令牌升级链，
+        //   不把整张 dataURL 顶进权威键 feed-posts。
+        let taStk = null;
+        if (g.stPool && g.stPool.length && feedTypeOn(cid, 'sticker') && Math.random() * 100 < cfg.postSticker) {
+          const sp = feedRandStickerPos();
+          taStk = { src: g.stPool[Math.floor(Math.random() * g.stPool.length)], emoji: '', x: sp.x, y: sp.y, ts: Date.now(), role: 'ta', owner: cid, authorName: taName };
+          post.stickers = [taStk];
+        }
         list.unshift(post);
         save(list);
+        if (taStk) feedStickerTokUpgrade(post.id, taStk);
         cs.set('feed-last', String(now));
         cs.set('feed-next', String(cfg.minInterval + Math.random() * Math.max(1, cfg.maxInterval - cfg.minInterval)));
         cs.set('feed-day-count', JSON.stringify({ t: today, n: dayCount.n + 1 }));

@@ -763,7 +763,7 @@ if (!pushed && !(take(pick.text, textParts) || take(pick.fb, textParts))) break;
 }
 const rcf = window.replyCfgFor ? window.replyCfgFor(cid) : null;
 const body = (window.pyJoinCards && rcf) ? window.pyJoinCards(textParts, rcf, rcf['fd-punct-en'] === 1) : textParts.join(' ');
-return { content: body, imgs: imgs };
+return { content: body, imgs: imgs, stPool: uniqArr(pool.sticker) };
 }
 function contentHtmlFor(p) {
 let content = String(p.content || '');
@@ -2550,8 +2550,15 @@ const taName = cs.get('lbl-partner') || 'TA';
 const taAv = cs.get('avatar-partner') || '';
 const list = load();
 const post = { id: 'f_' + Date.now() + '_' + cid, role: 'ta', owner: cid, authorName: taName, authorAv: '', taName: taName, taAv: '', content: g.content, imgs: g.imgs, ts: Date.now(), likes: [], comments: [] };
+let taStk = null;
+if (g.stPool && g.stPool.length && feedTypeOn(cid, 'sticker') && Math.random() * 100 < cfg.postSticker) {
+const sp = feedRandStickerPos();
+taStk = { src: g.stPool[Math.floor(Math.random() * g.stPool.length)], emoji: '', x: sp.x, y: sp.y, ts: Date.now(), role: 'ta', owner: cid, authorName: taName };
+post.stickers = [taStk];
+}
 list.unshift(post);
 save(list);
+if (taStk) feedStickerTokUpgrade(post.id, taStk);
 cs.set('feed-last', String(now));
 cs.set('feed-next', String(cfg.minInterval + Math.random() * Math.max(1, cfg.maxInterval - cfg.minInterval)));
 cs.set('feed-day-count', JSON.stringify({ t: today, n: dayCount.n + 1 }));
